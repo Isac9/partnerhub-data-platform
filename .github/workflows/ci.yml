@@ -1,0 +1,40 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: partnerhub
+          POSTGRES_PASSWORD: partnerhub
+          POSTGRES_DB: partnerhub
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U partnerhub" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      POSTGRES_HOST: localhost
+      PYTHONPATH: pipeline
+      ACME_API_URL: http://localhost:8010
+      PII_SALT: ci-only-salt
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: pip install -r pipeline/requirements.txt -r crm_api/requirements.txt
+      - name: Unit tests
+        run: pytest -q
+      - name: Create schemas and roles
+        run: PGPASSWORD=partnerhub psql -h localhost -U partnerhub -d partnerhub -f sql/init.sql
+      - name: Generate data and start the CRM API
+        run: |
+          python -m partnerhub.generate
+          cd crm_api && DATA_DIR=../data nohup uvicorn main:app --port 8010 &
+      - name: Full pipeline (dbt tests, reconciliation, privacy scan)
+        run: python -m partnerhub.run_all
