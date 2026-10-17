@@ -1,0 +1,35 @@
+name: partnerhub
+version: "1.0.0"
+config-version: 2
+profile: partnerhub
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+target-path: target
+clean-targets: ["target"]
+
+vars:
+  as_of: "2026-09-30"   # deals still open on this date are censored
+
+models:
+  partnerhub:
+    staging:
+      +schema: staging
+      +materialized: view
+    intermediate:
+      +schema: intermediate
+      +materialized: view
+    marts:
+      +schema: marts
+      +materialized: table
+      +post-hook: "{{ enable_tenant_rls() }}"
+
+seeds:
+  partnerhub:
+    +schema: reference
+    fx_rates:
+      +column_types:
+        currency_code: text
+        units_per_usd: numeric(18, 6)

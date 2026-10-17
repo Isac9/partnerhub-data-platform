@@ -1,0 +1,4 @@
+tenant_id,tenant_name,source_crm,source_format,currency_code
+acme,Acme Corp,HubSpot,REST API (paginated JSON),USD
+globex,Globex,Salesforce,CSV export,EUR
+initech,Initech,Pipedrive,JSON export,XOF

@@ -1,0 +1,49 @@
+name: partnerhub
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: partnerhub
+      POSTGRES_PASSWORD: partnerhub
+      POSTGRES_DB: partnerhub
+    ports:
+      - "5435:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U partnerhub -d partnerhub"]
+      interval: 5s
+      retries: 20
+
+  crm-api:
+    build: ./crm_api
+    volumes:
+      - ./data:/data:ro
+    ports:
+      - "8010:8000"
+
+  pipeline:
+    build: ./pipeline
+    depends_on:
+      postgres:
+        condition: service_healthy
+      crm-api:
+        condition: service_started
+    environment:
+      POSTGRES_HOST: postgres
+      ACME_API_URL: http://crm-api:8000
+      PII_SALT: ${PII_SALT:-dev-only-salt-change-me}
+    volumes:
+      - ./:/app
+
+  docs:
+    image: nginx:1.27-alpine
+    volumes:
+      - ./dbt/target:/usr/share/nginx/html:ro
+    ports:
+      - "8082:80"
+
+volumes:
+  pgdata:

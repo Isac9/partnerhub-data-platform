@@ -1,0 +1,10 @@
+tenant_id,source_value,canonical_partner_type
+acme,Reseller,reseller
+acme,Referral Partner,referral
+acme,Tech Partner,technology
+globex,VAR,reseller
+globex,Referral,referral
+globex,Technology,technology
+initech,reseller,reseller
+initech,affiliate,referral
+initech,integration,technology

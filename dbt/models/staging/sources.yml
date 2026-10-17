@@ -1,0 +1,18 @@
+version: 2
+
+sources:
+  - name: raw
+    description: Faithful copy of each CRM (all columns as text), emails already pseudonymized at ingestion.
+    schema: raw
+    tables:
+      - name: acme_companies
+      - name: acme_deals
+      - name: globex_partner_accounts
+      - name: globex_opportunities
+      - name: initech_organizations
+      - name: initech_deals
+  - name: audit
+    schema: audit
+    tables:
+      - name: source_totals
+        description: Row count and amount per tenant, computed by Python straight from the sources.

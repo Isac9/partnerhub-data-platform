@@ -1,0 +1,69 @@
+version: 2
+
+models:
+  - name: dim_tenants
+    description: The customers of the platform, one per source CRM.
+    columns:
+      - name: tenant_id
+        data_tests: [unique, not_null]
+
+  - name: dim_partners
+    description: Partners of every tenant, with canonical partner type and ISO country code.
+    columns:
+      - name: partner_id
+        description: Tenant prefix + source id, unique across tenants.
+        data_tests: [unique, not_null]
+      - name: tenant_id
+        data_tests:
+          - not_null
+          - relationships: {to: ref('dim_tenants'), field: tenant_id}
+      - name: partner_type
+        description: Canonical type. Null means a source value no mapping knows.
+        data_tests:
+          - not_null
+          - accepted_values: {values: ['reseller', 'referral', 'technology']}
+      - name: country_code
+        data_tests:
+          - not_null
+          - accepted_values: {values: ['CI', 'SN', 'US', 'FR']}
+      - name: contact_key
+        description: HMAC-SHA256 of the contact email. The plaintext email never reaches the warehouse.
+        data_tests: [not_null]
+
+  - name: fct_deals
+    description: One row per deal, every tenant, canonical stage, amount in source currency and in USD.
+    columns:
+      - name: deal_id
+        data_tests: [unique, not_null]
+      - name: tenant_id
+        data_tests:
+          - not_null
+          - relationships: {to: ref('dim_tenants'), field: tenant_id}
+      - name: partner_id
+        data_tests:
+          - not_null
+          - relationships: {to: ref('dim_partners'), field: partner_id}
+      - name: stage
+        description: Canonical pipeline stage. Null means a stage label no mapping knows.
+        data_tests:
+          - not_null
+          - accepted_values: {values: ['prospecting', 'qualified', 'proposal', 'negotiation', 'won', 'lost']}
+      - name: status
+        data_tests:
+          - not_null
+          - accepted_values: {values: ['open', 'won', 'lost']}
+      - name: amount_usd
+        description: Null means a currency missing from the fx_rates seed.
+        data_tests: [not_null]
+      - name: created_at
+        data_tests: [not_null]
+      - name: duration_days
+        description: Days from creation to close, or to the reporting date (var as_of) if still open.
+      - name: is_censored
+        description: True for open deals. Their real duration is unknown yet (survival analysis).
+
+  - name: partner_performance
+    description: Deals, win rate and won revenue per partner.
+    columns:
+      - name: partner_id
+        data_tests: [unique, not_null]

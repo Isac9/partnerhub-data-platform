@@ -1,0 +1,19 @@
+tenant_id,source_value,canonical_stage
+acme,appointmentscheduled,prospecting
+acme,qualifiedtobuy,qualified
+acme,presentationscheduled,proposal
+acme,contractsent,negotiation
+acme,closedwon,won
+acme,closedlost,lost
+globex,Prospecting,prospecting
+globex,Qualification,qualified
+globex,Proposal/Price Quote,proposal
+globex,Negotiation/Review,negotiation
+globex,Closed Won,won
+globex,Closed Lost,lost
+initech,open:1,prospecting
+initech,open:2,qualified
+initech,open:3,proposal
+initech,open:4,negotiation
+initech,won,won
+initech,lost,lost
